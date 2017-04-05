@@ -1,10 +1,13 @@
 <?php
 
+ini_set('display_errors', 'on');
+ini_set('error_reporting', E_ALL);
+
 require '..'.DIRECTORY_SEPARATOR.'despachador.php';
 return array(
-    'app_url'       => './?',   // requerido para url()
-    'path_url'      => './',    // requerido para curl()
-    'path'          => __DIR__,
+    'app_url'       => './?',   // una requerida y usada en url() y surl()
+
+    // extras
     'views_path'    => __DIR__.DIRECTORY_SEPARATOR.'views'
 );
 ?>

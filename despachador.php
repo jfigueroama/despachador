@@ -38,6 +38,19 @@ function partial(/* $func, $args... */){
 }
 
 /**
+ * Es un print_r en <pre> tags.
+ */
+function pprint_r($data, $titulo = null){
+    if ($titulo){
+        echo "<h4>$titulo</h4>";
+    }
+
+    echo "<pre>";
+    print_r($data);
+    echo "</pre>";
+}
+
+/**
  * Realiza un $arr[$k] = $v y vuelve el nuevo $arr.
  */
 function assoc($arr, $k, $v){
@@ -236,7 +249,7 @@ function url($req, $ruta, $parametros = ''){
  * Crea una url basada en el path_url de la configuracion.
  */
 function surl($req, $url){
-    $path_url = cfg($req)['path_url'];
+    $path_url = dirname(cfg($req)['app_url']);
     return $path_url.$url;
 
 }
@@ -322,6 +335,46 @@ function serve($req, $res){
     }
 }
 
+function router_default($crutas, $req, $rdefault = null){
+    if (count($req['get'] > 0)){
+        $url = $req['get'][0];
+
+        $ruta = null;
+        foreach ($crutas as $r){
+            $params = match($r, $url);
+            if (is_array($params)){
+                $req['get'] = array_merge($req['get'],
+                    array_combine($r['params'], $params));
+                $ruta = $r[0];
+
+                break;
+            }
+        }
+
+        if (is_null($ruta)){
+            if (is_null($rdefault)){
+                throw new Exception(
+                    "La url '$url' no coincide con ninguna ruta
+                    establecida.");
+            }else{
+                $ruta = $rdefault;
+            }
+        }
+    }else{
+        $ruta = $rdefault;
+    }
+    return array('route' => $ruta, 'req' => $req, 'url' => $url);
+}
+
+
+/**
+ * Inicializa los parametros extras:
+ * injectors
+ * processors
+ * errorfn
+ * router
+ * default_route
+ */
 function init_extras($req, $res, $extras){
     if (!isset($extras['injectors']))
         $extras['injectors'] = [];
@@ -333,10 +386,91 @@ function init_extras($req, $res, $extras){
                 render(status($res, $ex->getCode()),
                        "Hubo un error:<br/>\n {$ex->getMessage()}");
         };
+    if (!isset($extras['router'])){
+        $extras['router'] = 'router_default';
+    }
+    if (!isset($extas['default_route'])){
+        $extras['default_route'] = null;
+    }
 
     return $extras;
 }
 
+/**
+ * Compila una arreglo que representa una ruta para que pueda encontrarse si
+ * es que tiene parametros embedidos. Devuelve el arreglo de ruta con la info
+ * necesaria para el matching.
+ *
+ * Los parametros deben comenzar con ':' y tener una letra al principio, luego
+ * pueden contener '_' o letras o números. Ejemplos:
+ * :anio, :a1, :a_b :a1_  son buenos, ya que pueden representar variables php.
+ * 
+ * Los valores que puede tomar de un parametros son cualquiera que no contenga
+ * una diagonal como la que separa los paths en la url.
+ *
+ * Una ruta puede ser:
+ * array('/reporte/:anio/:periodo',
+ *       'GET' => 'reporte', 'POST' => 'destruir_app')
+ * Retorna algo como:
+ * array('/reporte/:anio/:periodo', 'GET' .....,
+ *       'params'  => ['anio', 'periodo'],
+ *       'matcher' => '/^\/reporte\/([^\/])+\/([^\/]+)$/')
+ */
+function compile_route($ruta){
+    $r      = $ruta[0];
+    $params = array();
+    $ps     = array();
+
+    preg_match_all('/:[a-zA-Z][_\w]*/', $r, $ps);
+    $ps = $ps[0];
+
+    foreach ($ps as $p){
+        $params[] = substr($p, 1);
+    }
+
+    $pmatcher = '/^'.str_replace('/', '\/', $r).'$/';
+    
+    foreach ($ps as $p){
+        $pmatcher = str_replace($p, '([^\/&]+)', $pmatcher);
+    }
+
+    $ruta['matcher'] = $pmatcher;
+    $ruta['params']  = $params;
+
+    return $ruta;
+}
+
+/**
+ * Compila un arreglo de rutas.
+ */
+function compile_routes($rutas){
+    return array_map(function($ruta){
+        return compile_route($ruta);
+    }, $rutas);
+}
+
+/**
+ * Checa si una url matchea con los datos de una ruta.
+ * Retorna un arreglo con los valores de la ruta si es que los encuentra.
+ * Si la ruta no tiene parámetros devuelve un arreglo vacío.
+ * Si no coincide la ruta y la url retorna null.
+ */
+function match($ruta, $url){
+    if (!isset($ruta['matcher'])){
+        throw new Exception("La ruta '{$ruta[0]}' no esta compilada.");
+    }
+
+    $matcher = $ruta['matcher'];
+
+    $ms = array();
+    preg_match($matcher, $url, $ms);
+
+    if (count($ms)> 0){
+        array_shift($ms);
+        return $ms;
+    }else
+        return null;
+}
 
 /**
  * Despacha una ruta a partir de las rutas.
@@ -359,29 +493,35 @@ function init_extras($req, $res, $extras){
  * $errfn  = function($req, $res, $ex){ ... });
  *          // errfn debe recibir los parametros descritos y devolver un
             // response modificado.
- * dispatch($req, $res, $rutas, 'ruteador', $errfn);
+ * dispatch($req, $res, $rutas);
  */
-function dispatch($req, $res, $rutas, $ruteadorfn, $extras = []){
+function dispatch($req, $res, $rutas, $extras = []){
     try{
         $extras     = init_extras($req, $res, $extras);
-        $errorfn    = $extras['errorfn'];
-        $ruta       = $ruteadorfn($rutas, $req);
+        $nreq       = inject($req, $extras['injectors']);
 
-        $nreq   = inject($req, $extras['injectors']);
+
+        $errorfn    = $extras['errorfn'];
+        $router     = $extras['router'];
+        $crutas     = compile_routes($rutas);
+        $ruteo      = $router($crutas, $nreq, $extras['default_route']);
+        $ruta       = $ruteo['route'];
+        $nreq       = $ruteo['req'];
+
 
         if (isset($rutas[$ruta])){
             if (is_array($rutas[$ruta])){
                 $rt     = $rutas[$ruta];
-                $method = $req['request_method'];
+                $method = $nreq['request_method'];
 
                 if (isset($rt[$method]))
                     $rfn = $rt[$method];
                 else
                     throw new Exception(
-                        "La ruta '$ruta' no tiene un handler para el
+                        "La url '{$ruteo['url']}' no tiene un handler para el
                         m&eacute;todo $method.", 500);
             }else{
-                $rfn = $rutas[$ruta];
+                $rfn = $crutas[$ruta];
             }
 
             $nres  = $rfn($nreq, $res);
@@ -389,12 +529,12 @@ function dispatch($req, $res, $rutas, $ruteadorfn, $extras = []){
                 $nres = render($res, $nres);
             }
 
-            $npres = process($req, $nres, $extras['processors']);
+            $npres = process($nreq, $nres, $extras['processors']);
 
             // Envia el response procesado junto con el request ya inyectado.
             serve($nreq, $npres);
         }else{
-            throw new Exception("Ruta '$ruta' desconocida", 404);
+            throw new Exception("La URL '{$ruteo['url']}' es desconocida", 404);
         }
     }catch(Exception $ex){
         serve($req, $errorfn($req, $res, $ex));
