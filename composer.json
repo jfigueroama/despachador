@@ -1,0 +1,23 @@
+{
+  "name": "jfigueroama/despachador",
+  "type": "library",
+  "description": "Una pequeña librería para crear apliaciones en PHP 5.5+ basada en noodlehaus/dispatch y en Ring de Clojure",
+  "keywords": ["microframework", "router", "micro", "microphp", "php"],
+  "homepage": "http://github.com/jfigueroama/despachador",
+  "license": "BSD 2-Clause",
+  "authors": [
+    {
+      "name": "jfigueroama",
+      "role": "Developer",
+      "homepage": "http://github.com/jfigueroama/"
+    }
+  ],
+  "require": {
+    "php": ">= 5.4"
+  },
+  "autoload": {
+    "files": [
+      "despachador.php"
+    ]
+  }
+}
