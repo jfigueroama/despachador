@@ -7,7 +7,19 @@
  * @date 20170404
  * @author jfigueroama
  * @license BSD 2-Clause
- * @todo: cookies, inyectores al request, event handlers, etc.
+ * @todo:
+ * - una funcionalidad para inyectar en los parametros de la url (get) los
+ *   parametros detectados por pattern matching en la url como
+ *      /reporte/:anio/:periodo
+ *      deberia devolver array('anio' => X, 'periodo' => 
+ *  NOTA: Esta funcionalidad es discutible ya que depende de cuando aplicarla
+ *        al request dado. Ademas de que necesita recibir las rutas tambien.
+ *      De hecho, el ruteador es un INJECTOR que mete datos a los parametros
+ *      GET en base a patrones en las rutas!, fuck!, bueno, no es problema,
+ *      excepto que se tiene que correr con el ruteador. Hay que definir mejor
+ *      esta parte, sale? ademas hay que comprobar que las rutas tienen un
+ *      formato correcto y tirar una excepcion si no para no joder al
+ *      cliente ni al desarrollador.
  */
 
 /**
@@ -88,7 +100,7 @@ function request($config = null){
     if ($config){
         $req['config'] = $config;
     }else{
-        throw new Exception("No se ha recibido una configuracion");
+        throw new Exception("No se ha recibido una configuracion", 500);
     }
 
     return $req;
@@ -205,18 +217,28 @@ function page($path, array $vars = []) {
 }
 
 /**
- * Crea una url con la ruta
+ *
  */
-function url($req, $params = null){
-    $url = $req['script'] . "?";
-    if (is_array($params)){
-        return $url . implode("&", array_map(function($k, $v){
-            return "$k=$v";
-        }, array_keys($params), array_values($params)));
-    }else{
-        throw new Exception("Se espera que los parametros de la URL
-                             sean un arreglo.");
-    }
+function cfg($req){
+    return $req['config'];
+}
+
+/**
+ * Crea una url basada en el app_url buscando una $ruta con $paramaetros
+ * extras.
+ */
+function url($req, $ruta, $parametros = ''){
+    $app_url = cfg($req)['app_url'];
+    return "$app_url$ruta&$parametros";
+}
+
+/**
+ * Crea una url basada en el path_url de la configuracion.
+ */
+function surl($req, $url){
+    $path_url = cfg($req)['path_url'];
+    return $path_url.$url;
+
 }
 
 /**
@@ -308,8 +330,8 @@ function init_extras($req, $res, $extras){
     if (!isset($extras['errorfn']))
         $extras['errorfn'] = function ($req, $res, $ex){
             return
-                status(render($res,
-                    "Hubo un error: {$ex->getMessage()}"), 500);
+                render(status($res, $ex->getCode()),
+                       "Hubo un error:<br/>\n {$ex->getMessage()}");
         };
 
     return $extras;
@@ -343,7 +365,7 @@ function dispatch($req, $res, $rutas, $ruteadorfn, $extras = []){
     try{
         $extras     = init_extras($req, $res, $extras);
         $errorfn    = $extras['errorfn'];
-        $ruta       = $ruteadorfn($req);
+        $ruta       = $ruteadorfn($rutas, $req);
 
         $nreq   = inject($req, $extras['injectors']);
 
@@ -357,7 +379,7 @@ function dispatch($req, $res, $rutas, $ruteadorfn, $extras = []){
                 else
                     throw new Exception(
                         "La ruta '$ruta' no tiene un handler para el
-                        m&eacute;todo $method.");
+                        m&eacute;todo $method.", 500);
             }else{
                 $rfn = $rutas[$ruta];
             }
@@ -372,7 +394,7 @@ function dispatch($req, $res, $rutas, $ruteadorfn, $extras = []){
             // Envia el response procesado junto con el request ya inyectado.
             serve($nreq, $npres);
         }else{
-            throw new Exception("Ruta $ruta desconocida");
+            throw new Exception("Ruta '$ruta' desconocida", 404);
         }
     }catch(Exception $ex){
         serve($req, $errorfn($req, $res, $ex));
