@@ -1,16 +1,6 @@
 <?php
 $config = require 'config-test.php';
 
-
-function ruteador($rutas, $req){
-    $keys = array_keys($req['get']);
-    if (count($keys) > 0){
-        return $keys[0];
-    }else{
-        return '/cdefault';
-    }
-}
-
 function cdefault($db, $req, $res){
     return render($res, view('cdefault', ['req' => $req]));
 }
@@ -24,11 +14,11 @@ function cparams($req, $res){
 }
 
 $rutas = array(
-    '/cdefault' => array('GET' => partial('cdefault', 'db')),
-    '/cotra'    => 'cotra',
-    '/cparams'  => 'cparams');
+    array('/cdefault', 'GET' => partial('cdefault', 'db')),
+    array('/cotra',   'GET' => 'cotra'),
+    array('/cparams', 'GET' => 'cparams'));
 
 
-dispatch(request($config), response(), $rutas, 'ruteador');
+dispatch(request($config), response(), $rutas);
 
 ?>

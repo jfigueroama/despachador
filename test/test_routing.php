@@ -27,7 +27,5 @@ pprint_r(match($nrutas[0], $ruta3), "Ruta $ruta3 en ruta 0");
 pprint_r(match($nrutas[1], $ruta4), "Ruta $ruta4 en ruta 1");
 pprint_r(match($nrutas[1], $ruta5), "Ruta $ruta5 en ruta 1");
 
-pprint_r(match($rutas[1], $ruta5), "Ruta $ruta5 en ruta 1");
-
 
 ?>

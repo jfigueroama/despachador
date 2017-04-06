@@ -233,7 +233,10 @@ function page($path, array $vars = []) {
  *
  */
 function cfg($req, $key){
-    return $req['config'][$key];
+    if (isset($req['config']) && isset($req['config'][$key]))
+        return $req['config'][$key];
+    else
+        return null;
 }
 
 /**
@@ -335,8 +338,14 @@ function serve($req, $res){
     }
 }
 
+function errorfn_default($req, $res, $ex){
+    return render(status($res, $ex->getCode()),
+        "Hubo un error:<br/>\n {$ex->getMessage()}");
+}
+
 function router_default($crutas, $req, $rdefault = null){
-    if (count($req['get'] > 0)){
+    $url = null;
+    if (count($req['get']) > 0){
         $url = $req['get'][0];
 
         $ruta = null;
@@ -375,17 +384,13 @@ function router_default($crutas, $req, $rdefault = null){
  * router
  * default_route
  */
-function init_extras($req, $res, $extras){
+function init_extras($req, $res, $extras = array()){
     if (!isset($extras['injectors']))
         $extras['injectors'] = [];
     if (!isset($extras['processors']))
         $extras['processors'] = [];
     if (!isset($extras['errorfn']))
-        $extras['errorfn'] = function ($req, $res, $ex){
-            return
-                render(status($res, $ex->getCode()),
-                       "Hubo un error:<br/>\n {$ex->getMessage()}");
-        };
+        $extras['errorfn'] = 'errorfn_default';
     if (!isset($extras['router'])){
         $extras['router'] = 'router_default';
     }
@@ -495,7 +500,7 @@ function match($ruta, $url){
             // response modificado.
  * dispatch($req, $res, $rutas);
  */
-function dispatch($req, $res, $rutas, $extras = []){
+function dispatch($req, $res, $rutas, $extras = array()){
     try{
         $extras     = init_extras($req, $res, $extras);
         $nreq       = inject($req, $extras['injectors']);
