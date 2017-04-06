@@ -232,8 +232,8 @@ function page($path, array $vars = []) {
 /**
  *
  */
-function cfg($req){
-    return $req['config'];
+function cfg($req, $key){
+    return $req['config'][$key];
 }
 
 /**
@@ -241,7 +241,7 @@ function cfg($req){
  * extras.
  */
 function url($req, $ruta, $parametros = ''){
-    $app_url = cfg($req)['app_url'];
+    $app_url = cfg($req, 'app_url');
     return "$app_url$ruta&$parametros";
 }
 
@@ -249,7 +249,7 @@ function url($req, $ruta, $parametros = ''){
  * Crea una url basada en el path_url de la configuracion.
  */
 function surl($req, $url){
-    $path_url = dirname(cfg($req)['app_url']);
+    $path_url = dirname(cfg($req, 'app_url');
     return $path_url.$url;
 
 }
