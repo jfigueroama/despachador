@@ -345,8 +345,10 @@ function errorfn_default($req, $res, $ex){
 
 function router_default($crutas, $req, $rdefault = null){
     $url = null;
-    if (count($req['get']) > 0){
-        $url = $req['get'][0];
+    $vars = array_keys($req['get']);
+
+    if (count($vars) > 0){
+        $url = $vars[0];
 
         $ruta = null;
         foreach ($crutas as $r){
@@ -449,9 +451,14 @@ function compile_route($ruta){
  * Compila un arreglo de rutas.
  */
 function compile_routes($rutas){
-    return array_map(function($ruta){
-        return compile_route($ruta);
-    }, $rutas);
+    $nrutas = array();
+
+    foreach ($rutas as $r){
+        $nr = compile_route($r);
+        $nrutas[$nr[0]] = $nr;
+    }
+
+    return $nrutas;
 }
 
 /**
@@ -514,9 +521,9 @@ function dispatch($req, $res, $rutas, $extras = array()){
         $nreq       = $ruteo['req'];
 
 
-        if (isset($rutas[$ruta])){
-            if (is_array($rutas[$ruta])){
-                $rt     = $rutas[$ruta];
+        if (isset($crutas[$ruta])){
+            if (is_array($crutas[$ruta])){
+                $rt     = $crutas[$ruta];
                 $method = $nreq['request_method'];
 
                 if (isset($rt[$method]))

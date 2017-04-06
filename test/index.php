@@ -19,6 +19,8 @@ $rutas = array(
     array('/cparams', 'GET' => 'cparams'));
 
 
-dispatch(request($config), response(), $rutas);
+$extras = array(
+    'default_route' => '/cdefault');
+dispatch(request($config), response(), $rutas, $extras);
 
 ?>
