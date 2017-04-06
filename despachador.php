@@ -277,8 +277,10 @@ function view($path, array $vars = [], $layout_path = "", array $lvars = []){
  * Define el contenido del response y si se va a debugear o no.
  */
 function render($res, $cadena, $debug = false){
-    if (!is_string($cadena)){
-        $cadena = strval($cadena);
+    if (!is_array($cadena) && !is_string($cadena)){
+            $cadena = strval($cadena);
+    }else if (is_array($cadena)){
+        throw new Exception ("Error al renderear valor.");
     }
 
     $res['content'] = $cadena;
@@ -363,13 +365,10 @@ function router_default($crutas, $req, $rdefault = null){
         }
 
         if (is_null($ruta)){
-            if (is_null($rdefault)){
-                throw new Exception(
-                    "La url '$url' no coincide con ninguna ruta
-                    establecida.");
-            }else{
-                $ruta = $rdefault;
-            }
+            throw new Exception(
+                "La url '$url' no coincide con ninguna ruta
+                establecida.");
+
         }
     }else{
         $ruta = $rdefault;
@@ -396,7 +395,7 @@ function init_extras($req, $res, $extras = array()){
     if (!isset($extras['router'])){
         $extras['router'] = 'router_default';
     }
-    if (!isset($extas['default_route'])){
+    if (!isset($extras['default_route'])){
         $extras['default_route'] = null;
     }
 
