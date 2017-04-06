@@ -245,7 +245,13 @@ function cfg($req, $key){
  */
 function url($req, $ruta, $parametros = ''){
     $app_url = cfg($req, 'app_url');
-    return "$app_url$ruta&$parametros";
+
+    if (!empty($parametros))
+        $p = "&$parametros";
+    else
+        $p = '';
+
+    return "$app_url$ruta&$pp";
 }
 
 /**
@@ -269,8 +275,6 @@ function view($path, array $vars = [], $layout_path = "", array $lvars = []){
         return page($layout_path, $nlvars);
     }
 }
-
-
 
 
 /**
