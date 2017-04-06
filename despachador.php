@@ -249,7 +249,7 @@ function url($req, $ruta, $parametros = ''){
  * Crea una url basada en el path_url de la configuracion.
  */
 function surl($req, $url){
-    $path_url = dirname(cfg($req, 'app_url');
+    $path_url = dirname(cfg($req, 'app_url'));
     return $path_url.$url;
 
 }
