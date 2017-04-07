@@ -141,6 +141,11 @@ function is_response($res){
         && isset($res['cookies']));
 }
 
+function is_request($req){
+    return (isset($res['request_method']) && isset($res['query_string'])
+        && isset($res['script_name']));
+}
+
 /**
  * Injecta cada inyector en $injectors al request $req.
  */
@@ -179,10 +184,15 @@ function process($req, $res, $processors){
  * Retorna un response con una cabecera extra para enviar o alguna modificada.
  */
 function rheader($res, $cabecera){
+    if (!is_response($res))
+        throw new Exception("Se requiere un response en rheader().");
+
     return assoc2($res, 'headers', $cabecera);
 }
 
 function redirect($res, $url){
+    if (!is_response($res))
+        throw new Exception("Se requiere un response en redirect().");
     return rheader($res, "Location: $url");
 }
 
@@ -190,6 +200,8 @@ function redirect($res, $url){
  * Cambia el status de un response a $status.
  */
 function status($res, $status = 200){
+    if (!is_response($res))
+        throw new Exception("Se requiere un response en status().");
     return assoc($res, 'status', $status);
 }
 
@@ -200,6 +212,9 @@ function status($res, $status = 200){
  * La persistencia default se basa en la sesión de php.
  */
 function session($res, $k, $v){
+    if (!is_response($res))
+        throw new Exception("Se requiere un response en session().");
+
     return assoc2k($res, 'session', $k, $v);
 }
 
@@ -209,6 +224,10 @@ function session($res, $k, $v){
 function cookie($res, $nombre, $valor = '', $tiempo = 0,
     $path = null, $dominio = null,
     $segura = false, $httponly = false){
+
+    if (!is_response($res))
+        throw new Exception("Se requiere un response en cookie().");
+
     return assoc2($res, 'cookies', array(
         'name'      => $nombre,
         'value'     => $valor,
@@ -237,6 +256,9 @@ function page($path, array $vars = []) {
  *
  */
 function cfg($req, $key){
+    if (!is_request($req))
+        throw new Exception("Se requiere un request en cfg().");
+
     if (isset($req['config']) && isset($req['config'][$key]))
         return $req['config'][$key];
     else
@@ -248,6 +270,9 @@ function cfg($req, $key){
  * extras.
  */
 function url($req, $ruta, $parametros = ''){
+    if (!is_request($req))
+        throw new Exception("Se requiere un request en url().");
+
     $app_url = cfg($req, 'app_url');
 
     if (!empty($parametros))
@@ -262,6 +287,9 @@ function url($req, $ruta, $parametros = ''){
  * Crea una url basada en el path_url de la configuracion.
  */
 function surl($req, $url){
+    if (!is_request($req))
+        throw new Exception("Se requiere un request en surl().");
+
     $path_url = dirname(cfg($req, 'app_url'));
     return $path_url.$url;
 
@@ -285,6 +313,9 @@ function view($path, array $vars = [], $layout_path = "", array $lvars = []){
  * Define el contenido del response y si se va a debugear o no.
  */
 function render($res, $cadena, $debug = false){
+    if (!is_response($res))
+        throw new Exception("Se requiere un response en render().");
+
     if (!is_array($cadena) && !is_string($cadena)){
             $cadena = strval($cadena);
     }else if (is_array($cadena)){
@@ -301,6 +332,9 @@ function render($res, $cadena, $debug = false){
  * manera.
  */
 function jrender($res, $data, $debug = false){
+    if (!is_response($res))
+        throw new Exception("Se requiere un response en jrender().");
+
     $res['content'] = json_encode($data, JSON_PRETTY_PRINT);
     $res['debug']   = $debug;
     return rheader($res, 'Content-Type', 'text/json');
