@@ -255,7 +255,7 @@ function url($req, $ruta, $parametros = ''){
     else
         $p = '';
 
-    return "$app_url$ruta&$p";
+    return "$app_url$ruta$p";
 }
 
 /**
