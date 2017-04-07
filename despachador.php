@@ -126,6 +126,7 @@ function response(){
         'status'        => 200,
         'content'       => '',
         'flash'         => null,    // Espacio de intercambio entre controlls.
+        'eflash'        => null,    // Para enviar error de dominio
         'headers'       => array(),
         'insession'     => array(), // Variables que entran a la sesion
         'incookies'     => array(), // Cookies que entran a las cookies
@@ -141,7 +142,8 @@ function is_response($res){
     return (is_array($res) && isset($res['status']) && isset($res['content'])
         && isset($res['headers']) && isset($res['insession'])
         && isset($res['incookies']) && isset($res['outsession'])
-        && isset($res['outcookies']) && isset($res['flash']));
+        && isset($res['outcookies']) && isset($res['flash'])
+        && isset($res['error'])    );
 }
 
 function is_request($req){
@@ -196,6 +198,19 @@ function flash($res, $v = null){
         return assoc($res, 'flash', $v);
 }
 
+/**
+ * Retorna un response con el eflash cambiado o devuelve el valor del eflash si
+ * no se manda el valor del mismo. No se puede definir un flash nulo.
+ */
+function eflash($res, $v = null){
+    if (!is_response($res))
+        throw new Exception("Se requiere un response en eflash().");
+
+    if (is_null($v))
+        return $res['eflash'];
+    else
+        return assoc($res, 'eflash', $v);
+}
 
 
 /**
