@@ -125,8 +125,8 @@ function response(){
     return array(
         'status'        => 200,
         'content'       => '',
-        'flash'         => null,    // Espacio de intercambio entre controlls.
-        'eflash'        => null,    // Para enviar error de dominio
+        'flash'         => '',    // Espacio de intercambio entre controlls.
+        'eflash'        => '',    // Para enviar error de dominio
         'headers'       => array(),
         'insession'     => array(), // Variables que entran a la sesion
         'incookies'     => array(), // Cookies que entran a las cookies
@@ -143,7 +143,7 @@ function is_response($res){
         && isset($res['headers']) && isset($res['insession'])
         && isset($res['incookies']) && isset($res['outsession'])
         && isset($res['outcookies']) && isset($res['flash'])
-        && isset($res['error'])    );
+        && isset($res['eflash'])    );
 }
 
 function is_request($req){
