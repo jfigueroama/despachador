@@ -87,6 +87,16 @@ function get_schema($conn, $wsentity){
     return $s;
 }
 
+/**                                                                             
+ * Obtiene una sola tupla a traves de un sql.                                   
+ */                                                                             
+function instance($conn, $sql, $params){                                        
+    $data = q($conn, $sql, $params);                                            
+
+    if (count($data) > 0)                                                       
+        return $data[0];                                                        
+    else                                                                                return null;                                                            }       
+
 function get_instances($conn, $wsentity, $id = null){
     $s  = array();
     $nid = intval($id);
