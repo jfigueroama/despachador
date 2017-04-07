@@ -11,7 +11,7 @@ $rutas = array(
 
 pprint_r($rutas, "Rutas sin compilar");
 
-$nrutas = compile_routes($rutas);
+$nrutas = array_values(compile_routes($rutas));
 pprint_r($nrutas, "Rutas compiladas");
 
 $ruta1 = '/reporte/2016/10';

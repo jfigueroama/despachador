@@ -182,6 +182,10 @@ function rheader($res, $cabecera){
     return assoc2($res, 'headers', $cabecera);
 }
 
+function redirect($res, $url){
+    return rheader($res, "Location: $url");
+}
+
 /**
  * Cambia el status de un response a $status.
  */
@@ -251,7 +255,7 @@ function url($req, $ruta, $parametros = ''){
     else
         $p = '';
 
-    return "$app_url$ruta&$pp";
+    return "$app_url$ruta&$p";
 }
 
 /**
