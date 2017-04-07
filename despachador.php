@@ -136,14 +136,14 @@ function response(){
  * Dice si un arreglo es un response o tiene lo basico de un response.
  */
 function is_response($res){
-    return (isset($res['status']) && isset($res['content'])
+    return (is_array($res) && isset($res['status']) && isset($res['content'])
         && isset($res['headers']) && isset($res['session'])
         && isset($res['cookies']));
 }
 
 function is_request($req){
-    return (isset($res['request_method']) && isset($res['query_string'])
-        && isset($res['script_name']));
+    return (is_array($req) && isset($res['request_method'])
+        && isset($res['query_string']) && isset($res['script_name']));
 }
 
 /**
