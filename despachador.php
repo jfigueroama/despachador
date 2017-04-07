@@ -212,23 +212,43 @@ function status($res, $status = 200){
  * La persistencia de la sesión depende de procesadores extras si se requiere
  * el uso de bases de datos.
  * La persistencia default se basa en la sesión de php.
+ * $k puede ser una string o un arreglo asociativo para meter muchas vars de
+ * golpe a la sesion.
  */
-function insession($res, $k, $v){
+function insession($res, $k, $v = null){
     if (!is_response($res))
         throw new Exception("Se requiere un response en session().");
 
-    return assoc2k($res, 'insession', $k, $v);
+    if (is_array($k)){
+        foreach ($k as $ki => $vi){
+            $res = assoc2k($res, 'insession', $ki, $vi);
+        }
+
+        return $res;
+    }else{
+        return assoc2k($res, 'insession', $k, $v);
+    }
 }
 
 /**
  * Retorna un response que además debe eliminar de la sesion ciertas claves.
  * Maneja la $_SESSION de php por ahora.
+ * $k puede ser una string o un arreglo para sacar muchas variables de la
+ * sesion.
  */
 function outsession($res, $k){
     if (!is_response($res))
         throw new Exception("Se requiere un response en session().");
 
-    return assoc2($res, 'outsession', $k);
+    if (is_array($k)){
+        foreach ($k as $ki){
+            $res = assoc2($res, 'outsession', $ki);
+        }
+
+        return $res;
+    }else{
+        return assoc2($res, 'outsession', $k);
+    }
 }
 
 /**
