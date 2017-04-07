@@ -106,7 +106,6 @@ function request($config = null){
         'files'             => $_FILES,
         'cookie'            => $_COOKIE,    // arreglo de cookies entrantes
         'server'            => $_SERVER,
-        'globals'           => $GLOBALS,
         'session'           => isset($_SESSION) ? $_SESSION : array()
     );
 
@@ -142,8 +141,8 @@ function is_response($res){
 }
 
 function is_request($req){
-    return (is_array($req) && isset($res['request_method'])
-        && isset($res['query_string']) && isset($res['script_name']));
+    return (is_array($req) && isset($req['request_method'])
+        && isset($req['query_string']) && isset($req['script_name']));
 }
 
 /**
