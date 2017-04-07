@@ -123,11 +123,13 @@ function request($config = null){
  */
 function response(){
     return array(
-        'status'    => 200,
-        'content'   => '',
-        'headers'   => array(),
-        'session'   => array(),
-        'cookies'   => array(),
+        'status'        => 200,
+        'content'       => '',
+        'headers'       => array(),
+        'insession'     => array(), // Variables que entran a la sesion
+        'incookies'     => array(), // Cookies que entran a las cookies
+        'outcookies'    => array(), // Para eliminar cookies
+        'outsession'    => array()  // Para eliminar variables de la sesion
     );
 }
 
@@ -136,8 +138,9 @@ function response(){
  */
 function is_response($res){
     return (is_array($res) && isset($res['status']) && isset($res['content'])
-        && isset($res['headers']) && isset($res['session'])
-        && isset($res['cookies']));
+        && isset($res['headers']) && isset($res['insession'])
+        && isset($res['incookies']) && isset($res['outsession'])
+        && isset($res['outcookies']));
 }
 
 function is_request($req){
@@ -210,24 +213,35 @@ function status($res, $status = 200){
  * el uso de bases de datos.
  * La persistencia default se basa en la sesión de php.
  */
-function session($res, $k, $v){
+function insession($res, $k, $v){
     if (!is_response($res))
         throw new Exception("Se requiere un response en session().");
 
-    return assoc2k($res, 'session', $k, $v);
+    return assoc2k($res, 'insession', $k, $v);
+}
+
+/**
+ * Retorna un response que además debe eliminar de la sesion ciertas claves.
+ * Maneja la $_SESSION de php por ahora.
+ */
+function outsession($res, $k){
+    if (!is_response($res))
+        throw new Exception("Se requiere un response en session().");
+
+    return assoc2($res, 'outsession', $k);
 }
 
 /**
  * Crea una cookie y la agrega al response $res.
  */
-function cookie($res, $nombre, $valor = '', $tiempo = 0,
+function incookie($res, $nombre, $valor = '', $tiempo = 0,
     $path = null, $dominio = null,
     $segura = false, $httponly = false){
 
     if (!is_response($res))
         throw new Exception("Se requiere un response en cookie().");
 
-    return assoc2($res, 'cookies', array(
+    return assoc2($res, 'incookies', array(
         'name'      => $nombre,
         'value'     => $valor,
         'expire'    => $tiempo,
@@ -236,6 +250,18 @@ function cookie($res, $nombre, $valor = '', $tiempo = 0,
         'secure'    => $segura,
         'httponly'  => $httponly));
 }
+
+/**
+ * Agrega una cookie (nombre) para eliminarla al final del response.
+ */
+function outcookie($res, $nombre){
+
+    if (!is_response($res))
+        throw new Exception("Se requiere un response en cookie().");
+
+    return assoc2($res, 'outcookies', $nombre);
+}
+
 
 /**
  * Retorna una página php rendereada como si las variables mandadas en $vars
@@ -359,17 +385,24 @@ function serve($req, $res){
     }
 
     if (is_response($res)){
-        foreach ($res['session'] as $k => $v){
+        foreach ($res['insession'] as $k => $v){
             $_SESSION[$k] = $v;
+        }
+
+        foreach ($res['outsession'] as $k){
+            unset($_SESSION[$k]);
         }
 
         foreach ($res['headers'] as $he){
             header($he);
         }
 
-        foreach ($res['cookies'] as $c){
+        foreach ($res['incookies'] as $c){
             setcookie($c['name'], $c['value'], $c['expire'], $c['path'],
                 $c['domain'], $c['secure'], $c['httponly']);
+        }
+        foreach ($res['outcookies'] as $c){
+            setcookie($c, 'eliminada', 1);
         }
 
         http_response_code($res['status']);
