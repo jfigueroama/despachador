@@ -311,7 +311,7 @@ function view($path, array $vars = [], $layout_path = "", array $lvars = []){
 /**
  * Define el contenido del response y si se va a debugear o no.
  */
-function render($res, $cadena, $debug = false){
+function render($res, $cadena = '', $debug = false){
     if (!is_response($res))
         throw new Exception("Se requiere un response en render().");
 
