@@ -70,7 +70,7 @@ function assoc2($arr, $k, $v){
     $a[] = $v;
     $arr[$k] = $a;
 
-    return $a;
+    return $arr;
 }
 
 /**
@@ -84,7 +84,7 @@ function assoc2k($arr, $kin, $k, $v){
     $a[$k] = $v;
     $arr[$kin] = $a;
 
-    return $a;
+    return $arr;
 }
 
 /**
