@@ -192,7 +192,7 @@ function rheader($res, $cabecera){
 function redirect($res, $url){
     if (!is_response($res))
         throw new Exception("Se requiere un response en redirect().");
-    return rheader($res, "Location: $url");
+    return status(rheader($res, "Location: $url"), 303);
 }
 
 /**
