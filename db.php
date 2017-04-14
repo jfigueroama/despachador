@@ -56,7 +56,7 @@ function q($conn, $sql, $params = array(), $mode = PDO::FETCH_ASSOC,
  * Insert a tuple as stated by $sql with $params parameters. Returns the
  * last inserted id on $conn.
  */
-function i($conn, $sql, $params = array(),
+function insert($conn, $sql, $params = array(),
                 $emsg = 'Error en insercion a la DB:'){
     $stmt = $conn->prepare($sql);
     $stmt->execute($params);
@@ -78,7 +78,7 @@ function i($conn, $sql, $params = array(),
  * Executes a $sql on $conn using $params as parameters and returns the
  * number of affected rows.
  */
-function e($conn, $sql, $params = array(),
+function execute($conn, $sql, $params = array(),
                  $emsg = 'Error en operacin en la DB:'){
     $stmt = $conn->prepare($sql);
     $stmt->execute($params);
@@ -100,12 +100,12 @@ function e($conn, $sql, $params = array(),
  *
  * Obtains a tuple (just one) from $conn with $sql and $params.
  * Otherwise returns null.
- */                                                                             
-function inst($conn, $sql, $params){                                        
-    $data = q($conn, $sql, $params);                                            
+ */
+function inst($conn, $sql, $params){
+    $data = q($conn, $sql, $params);
 
-    if (count($data) > 0)                                                       
-        return $data[0];                                                        
+    if (count($data) > 0)
+        return $data[0];
     else
         return null;
 }
