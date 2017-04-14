@@ -2,6 +2,7 @@
 
 $config = require 'config-test.php';
 
+
 echo "<h3>Test de ruteo.</h3>";
 
 

@@ -1,6 +1,7 @@
 <?php
 $config = require 'config-test.php';
 
+
 function cdefault($db, $req, $res){
     return render($res, view('cdefault', ['req' => $req]));
 }

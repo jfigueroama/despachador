@@ -23,6 +23,19 @@
  */
 
 /**
+ * Es un print_r en <pre> tags.
+ */
+function pprint_r($data, $titulo = null){
+    if ($titulo){
+        echo "<h4>$titulo</h4>";
+    }
+
+    echo "<pre>";
+    print_r($data);
+    echo "</pre>";
+}
+
+/**
  * Aplicación parcial de una función.
  * Retorna una función parcialmente aplicada.
  * Tomada de http://eddmann.com/posts/using-partial-application-in-php/
@@ -35,19 +48,6 @@ function partial(/* $func, $args... */){
         return call_user_func_array($func,
             array_merge($args, func_get_args()));
     };
-}
-
-/**
- * Es un print_r en <pre> tags.
- */
-function pprint_r($data, $titulo = null){
-    if ($titulo){
-        echo "<h4>$titulo</h4>";
-    }
-
-    echo "<pre>";
-    print_r($data);
-    echo "</pre>";
 }
 
 /**
@@ -86,6 +86,9 @@ function assoc2k($arr, $kin, $k, $v){
 
     return $arr;
 }
+
+// //
+
 
 /**
  * Crea un request a partir del entorno actual. Agrega todas las variables
