@@ -101,7 +101,7 @@ function execute($conn, $sql, $params = array(),
  * Obtains a tuple (just one) from $conn with $sql and $params.
  * Otherwise returns null.
  */
-function inst($conn, $sql, $params){
+function instance($conn, $sql, $params){
     $data = q($conn, $sql, $params);
 
     if (count($data) > 0)
@@ -110,6 +110,29 @@ function inst($conn, $sql, $params){
         return null;
 }
 
+/**
+ * Retorna una instancia
+ */
+function inst($conn, $table, $params){
+    $nparams = [];
+    $awhere  = [];
+
+    if (!is_array($params)){
+        $id     = $params;
+        $params = array('id' => $id);
+    }
+
+    $keys = array_keys($params);
+    foreach($keys as $k){
+        $nparams[":$k"] = $params[$k];
+        $awhere[]       = "$k=:$k";
+    }
+
+    $where = implode(" AND ", $awhere);
+    $sql = "SELECT * FROM $table WHERE $where";
+
+    return instance($conn, $sql, $nparams);
+}
 
 /*
 function get_schema($conn, $wsentity){
